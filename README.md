@@ -1,71 +1,125 @@
-# Agents.dev
+# 🤖 Agents.dev
 
-**Agents.dev** is a CLI tool that acts as a "Source of Truth" for your AI Development Agents.
-Inspired by tools like *Specify*, it allows you to define your agent personas in a single, agnostic YAML format and "compile" them into configuration files for various AI coding assistants.
+**The "Package Manager" for AI Agents.**
+Agents.dev is a CLI tool that defines a standard Squad of AI Developers and installs them directly into your favorite AI Coding Assistant contexts (Gemini, Roo Code, Kilo Code, OpenCode).
 
-## 🚀 Supported Targets
+Stop prompting from scratch. Install a proven workflow.
 
-The CLI currently installs agents directly into the configuration paths for:
+## 🚀 Quick Start
 
-- **Gemini CLI**: `.gemini/commands/dev/`
-- **Roo Code**: `.roo/commands/`
-- **Kilo Code**: `.kilocode/workflows/`
-- **OpenCode**: `.opencode/command/`
+### Prerequisites
+- Node.js 18+
+- An AI Coding Assistant (e.g., Google IDX with Gemini, VSCode with Roo Code)
 
-## 📦 Installation
+### Installation & Usage
 
-This project is designed to be run as a dev dependency or a local tool within your repository.
-
+**Option 1: Direct Install (Recommended)**
+Install globally or in your project:
 ```bash
-npm install
+npx agents.dev
+# OR
+npm install agents.dev
+agents-install
 ```
 
-## 🛠️ Usage
+**Option 2: From Source**
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/your-username/agents.dev.git
+   cd agents.dev
+   ```
+2. Install & Run:
+   ```bash
+   npm install
+   npm start
+   ```
 
-### 1. Define your Agents
-Create YAML files in the `definitions/` directory.
+### First Run
+Running the tool will start the **Wizard**:
+1.  **Select OS**: Windows or Unix.
+2.  **Select Targets**: Choose formats to build (Gemini, Roo, etc.).
+3.  **Docs Auto-Gen**: It automatically creates `docs/` and a workflow guide.
 
-**Example:** `definitions/backend-architect.yaml`
-```yaml
-name: Backend Architect
-role: Senior Backend Engineer
-emoji: 🏗️
-systemPrompt: |
-  You are a Senior Backend Engineer.
-  You specialize in Scalable Node.js APIs.
-rules:
-  - Always write unit tests.
-  - Use snake_case for database columns.
-```
+---
 
-### 2. Build/Install
-Run the start command to convert your YAMLs into target configurations.
+## 👥 The Squad (Agent Functions)
 
-**Interactive Mode:**
-```bash
-npm start
-```
-*Select which targets you want to update using the interactive menu.*
+The system works best when you follow this pipeline. Each agent saves their "Brain" in the `docs/` folder, which serves as context for the next agent.
 
-**CLI Mode (CI/CD friendly):**
-```bash
-npm start -- --target gemini,roo
-```
+### 🏗️ 1. Project Architect
+**"The Visionary"**  
+Transforms your raw idea into a professional specification. It acts as an interviewer to discover hidden requirements.
+- **Trigger:** `/dev.project "I want a Uber clone for dog walking"`
+- **Action:** Asks clarifying questions about features, target audience, and constraints.
+- **Output:** `docs/project.md` (Scope, User Stories, Core Principles).
 
-## ✅ Validation
-The CLI includes Zod validation to ensure your definitions are complete.
-Required fields:
-- `name`
-- `role`
-- `systemPrompt` (min 10 characters)
+### 🧱 2. Requirements Engineer
+**"The Tech Lead"**  
+Decides *how* to build it. Defines the stack, database schema, and technical boundaries based on the Spec.
+- **Trigger:** `/dev.requirements`
+- **Action:** Selects libraries (e.g., "Prisma vs TypeORM"), defines API contracts, and security rules.
+- **Output:** `docs/requirements.md` (The "Technical Contract" that the Coder must obey).
 
-## 📂 Project Structure
-```text
-.
-├── definitions/       # Your Source of Truth (YAML)
-├── src/               # CLI Source Code
-├── .gemini/           # Generated Gemini Commands
-├── .roo/              # Generated Roo Contexts
-├── .kilocode/         # Generated Kilo Workflows
-└── .opencode/         # Generated OpenCode Commands
-```
+### 🗺️ 3. Milestone Manager
+**"The Strategist"**  
+Prevents you from trying to build everything at once. Slices the project into logical "MVPs" (Phases).
+- **Trigger:** `/dev.milestone`
+- **Output:** `docs/milestones.md` (e.g., Phase 1: Auth, Phase 2: Payment, Phase 3: GPS).
+
+### 📋 4. Task Planner
+**"The Project Manager"**  
+Takes **ONE Milestone** and breaks it down into atomic, bite-sized tasks for the AI Coder.
+- **Reasoning:** AI Coders hallucinate less when the context is small.
+- **Trigger:** `/dev.tasks 1` (Plan Milestone 1)
+- **Output:** `docs/task.md` (A checklist of 5-10 specific file operations).
+
+### 🕵️ 5. Auditor
+**"The Gatekeeper"**  
+A safety check before you start coding. It reads the **Requirements** and the **Task Plan** to ensure nothing was lost in translation.
+- **Trigger:** `/dev.auditor`
+- **Action:** "Hey, you planned the Login UI but forgot the 'Forgot Password' flow mentioned in Requirements."
+- **Output:** `audit_report.md` (Pass/Fail).
+
+### 💻 6. Coder
+**"The Senior Developer"**  
+The workhorse. It executes ONE task from the checklist at a time.
+- **Features:**
+    - **Context Aware:** Reads `project.md` to know "Project Principles" (e.g., "Use Functional Components").
+    - **Safety:** Checks `.gitignore` before creating files.
+    - **TDD:** Can write tests before code if requested.
+- **Trigger:** `/dev.coder 1.1` (Implement Task 1.1)
+- **Output:** Writes code to `src/` and logs to `work_log.md`.
+
+### ⚖️ 7. QA Engineer
+**"The Reviewer"**  
+Simulates a Pull Request review. It checks if the code matches the Requirements contracts.
+- **Trigger:** `/dev.review 1.1`
+- **Action:** Reads the code and the `requirements.md`. If variables are named poorly or logic is insecure, it REJECTS the task.
+
+### 📦 8. Release Manager
+**"The Historian"**  
+Consolidates the messy daily `work_log.md` into a clean `CHANGELOG`.
+- **Trigger:** `/dev.log`
+
+---
+
+## 🛠️ On-Demand Toolkit
+
+### 🏗️ DevOps Engineer (`/dev.ops`)
+**"The Config Specialist"**  
+Don't waste token context on config files during feature dev. Call this agent specifically for:
+- "Create a Dockerfile for this Node structure"
+- "Setup Github Actions for tests"
+- "Configure ESLint and Prettier"
+
+---
+
+## 🎯 Supported Targets
+
+- **Gemini CLI** (`.gemini/commands/*.toml`)
+- **Roo Code** (`.roo/commands/*.md`)
+- **Kilo Code** (`.kilocode/workflows/*.md`)
+- **OpenCode** (`.opencode/command/*.md`)
+
+## 📄 Documentation
+During installation, the CLI automatically generates a `docs/README.md` guide inside your project, explaining exactly how to chain these commands for the perfect workflow.

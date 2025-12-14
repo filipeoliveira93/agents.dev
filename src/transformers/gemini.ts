@@ -1,31 +1,43 @@
 import { AgentDefinition } from '../types';
 
 export function toGeminiSystemPrompt(agent: AgentDefinition): string {
-  const parts = [];
+  // Construct the prompt content (System Prompt + Rules + Tools)
+  const promptParts = [];
 
-  // Identity
-  parts.push(`# Identity\n`);
-  parts.push(`You are **${agent.name}** ${agent.emoji || ''}`);
-  parts.push(`Role: ${agent.role}\n`);
+  // Identity logic is usually part of the prompt in this TOML structure
+  promptParts.push(`# Identity`);
+  promptParts.push(`You are **${agent.name}** ${agent.emoji || ''}`);
+  promptParts.push(`Role: ${agent.role}\n`);
 
-  // System Prompt
-  parts.push(`# Core Instructions\n`);
-  parts.push(agent.systemPrompt.trim());
-  parts.push('\n');
+  promptParts.push(`# Core Instructions`);
+  promptParts.push(agent.systemPrompt.trim());
+  promptParts.push('\n');
 
-  // Rules
   if (agent.rules && agent.rules.length > 0) {
-    parts.push(`# Rules & Guidelines\n`);
-    agent.rules.forEach(rule => parts.push(`- ${rule}`));
-    parts.push('\n');
+    promptParts.push(`# Rules & Guidelines`);
+    agent.rules.forEach(rule => promptParts.push(`- ${rule}`));
+    promptParts.push('\n');
   }
 
-  // Tools (if any)
   if (agent.tools && agent.tools.length > 0) {
-    parts.push(`# Preferred Tools\n`);
-    agent.tools.forEach(tool => parts.push(`- ${tool}`));
-    parts.push('\n');
+    promptParts.push(`# Preferred Tools`);
+    agent.tools.forEach(tool => promptParts.push(`- ${tool}`));
+    promptParts.push('\n');
   }
 
-  return parts.join('\n');
+  const fullPrompt = promptParts.join('\n');
+
+  // Manual TOML construction
+  // 1. description = "..."
+  //    Basic escaping for double quotes
+  const escapedDescription = agent.role.replace(/"/g, '\\"');
+  
+  // 2. prompt = """..."""
+  //    Escape triple quotes if they exist in the content (rare but possible)
+  const escapedPrompt = fullPrompt.replace(/"""/g, '\\"\\"\\"');
+
+  return `description = "${escapedDescription}"
+prompt = """
+${escapedPrompt}
+"""`;
 }
