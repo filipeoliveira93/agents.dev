@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from 'commander';
 import fs from 'fs-extra';
 import path from 'path';
@@ -13,6 +14,7 @@ program
   .description('Agent Installer CLI')
   .version('1.0.0')
   .option('-o, --out <dir>', 'Output directory', '.')
+  .option('-i, --input <path>', 'Input file or directory (default: definitions/ or agents.md)')
   .option('-t, --target <targets>', 'Comma-separated target formats (gemini, roo, kilo, opencode)')
   .action(async (options) => {
     console.log(chalk.bold.blue('\n🚀 Agents.dev Installer Wizard\n'));
@@ -42,7 +44,17 @@ program
     }
 
     // --- STEP 2: BUILD AGENTS ---
-    const definitionsDir = path.join(process.cwd(), 'definitions');
+    let inputPath = options.input ? path.resolve(options.input) : path.join(process.cwd(), 'definitions');
+    
+    // If default definitions dir doesn't exist and no input specified, try agents.md
+    if (!options.input && !await fs.pathExists(inputPath)) {
+        const localAgentsMd = path.join(process.cwd(), 'agents.md');
+        if (await fs.pathExists(localAgentsMd)) {
+            inputPath = localAgentsMd;
+            console.log(chalk.gray(`ℹ️  Using 'agents.md' found in root.`));
+        }
+    }
+    
     const outDir = path.resolve(options.out);
 
     // Determine targets
@@ -77,7 +89,7 @@ program
       return;
     }
 
-    await generateAgents(definitionsDir, outDir, selectedTargets);
+    await generateAgents(inputPath, outDir, selectedTargets);
   });
 
 program.parse(process.argv);

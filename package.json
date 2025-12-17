@@ -1,13 +1,28 @@
 {
   "name": "agents.dev",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "agents.dev": "./dist/index.js",
+    "agents-install": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "definitions"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx ts-node src/index.ts"
+    "start": "npx ts-node src/index.ts",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "agents",
+    "ai",
+    "cli",
+    "workflow"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
