@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const fsp = require('fs/promises');
 const path = require('path');
-const yaml = require('js-yaml');
 const { intro, outro, multiselect, select, spinner, note } = require('@clack/prompts');
 const pc = require('picocolors');
 
 // Módulos Internos
-const { AgentSchema } = require('./lib/schema');
+const { loadAgents } = require('./lib/agents');
 const { toGeminiTOML, toRooConfig, toKiloMarkdown } = require('./lib/transformers');
 const { generateWorkflowGuide } = require('./lib/docs');
 
@@ -65,74 +65,51 @@ async function processAgentsInstallation(tool) {
     const s = spinner();
     s.start('Carregando definições...');
 
-    const definitionsDir = path.join(__dirname, '..', 'definitions');
-    if (!fs.existsSync(definitionsDir)) {
-        s.stop('Falha');
-        note(`Pasta de definições não encontrada: ${definitionsDir}`, 'Erro Fatal');
-        return;
-    }
-
-    const files = fs.readdirSync(definitionsDir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
-    const validAgents = [];
-
-    // Validação e Carregamento
-    for (const file of files) {
-        try {
-            const content = fs.readFileSync(path.join(definitionsDir, file), 'utf8');
-            const raw = yaml.load(content);
-            
-            // Validação com Zod
-            const parsed = AgentSchema.safeParse(raw);
-            if (!parsed.success) {
-                console.warn(pc.yellow(`⚠️  Ignorando ${file}: Inválido`));
-                continue;
-            }
-
-            const agent = parsed.data;
-            agent.slug = file.replace(/\.ya?ml$/, '').replace(/\./g, '-'); // dev.coder -> dev-coder
-            validAgents.push(agent);
-
-        } catch (e) {
-            console.error(pc.red(`Erro ao ler ${file}: ${e.message}`));
-        }
-    }
-
-    s.message(`Instalando ${validAgents.length} agentes para ${tool}...`);
-
-    // Instalação Específica por Ferramenta
     try {
+        const validAgents = await loadAgents();
+
+        if (validAgents.length === 0) {
+            s.stop('Nenhum agente válido encontrado.');
+            return;
+        }
+
+        s.message(`Instalando ${validAgents.length} agentes para ${tool}...`);
+
+        // Instalação Específica por Ferramenta
         if (tool === 'gemini') {
             const targetDir = path.join(process.cwd(), '.gemini', 'commands', 'dev');
-            if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+            await fsp.mkdir(targetDir, { recursive: true });
 
-            for (const agent of validAgents) {
+            await Promise.all(validAgents.map(agent => {
                 const toml = toGeminiTOML(agent);
-                // Nome original com pontos (dev.coder.toml) é preferível para Gemini CLI
-                const fileName = `${agent.slug.replace(/-/g, '.')}.toml`; 
-                fs.writeFileSync(path.join(targetDir, fileName), toml);
-            }
+                // Usa originalName para manter pontos (dev.coder.toml)
+                const fileName = `${agent.originalName}.toml`; 
+                return fsp.writeFile(path.join(targetDir, fileName), toml);
+            }));
         } 
         else if (tool === 'roo' || tool === 'cline') {
             const modes = validAgents.map(agent => toRooConfig(agent, agent.slug));
             const jsonContent = JSON.stringify({ customModes: modes }, null, 2);
             const fileName = `${tool}_custom_modes.json`;
-            fs.writeFileSync(path.join(process.cwd(), fileName), jsonContent);
+            await fsp.writeFile(path.join(process.cwd(), fileName), jsonContent);
             note(`Copie o conteúdo de '${fileName}' para as configurações da extensão.`, 'Ação Manual');
         } 
         else if (tool === 'kilo') {
             const targetDir = path.join(process.cwd(), '.kilo', 'prompts');
-            if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+            await fsp.mkdir(targetDir, { recursive: true });
 
-            for (const agent of validAgents) {
+            await Promise.all(validAgents.map(agent => {
                 const md = toKiloMarkdown(agent);
-                fs.writeFileSync(path.join(targetDir, `${agent.slug}.md`), md);
-            }
+                return fsp.writeFile(path.join(targetDir, `${agent.slug}.md`), md);
+            }));
         }
+        
         s.stop('Instalação finalizada!');
 
     } catch (e) {
         s.stop('Falha');
         console.error(pc.red(e.message));
+        // Se for um erro fatal de pasta não encontrada, loadAgents já lançou throw
     }
 }
 
