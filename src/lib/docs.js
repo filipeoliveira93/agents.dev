@@ -19,10 +19,10 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 ## 1. 🏗️ Project Spec (@Project Architect)
 **Role:** O Visionário.
 **Goal:** Traduzir sua ideia vaga em uma Especificação concreta com "Project Principles" definidos.
-- **Comando:** \
+- **Comando:** \\
 /dev:project "Eu quero um App de Todo que..."
 - **Saída:** 
-`docs/project.md`
+\`docs/project.md\`
 
 ## 2. 🧱 Requirements Engineering (@Requirements Engineer)
 **Role:** O Tech Lead.
@@ -31,7 +31,7 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 - **Comando:** 
 /dev:requirements
 - **Saída:** 
-`docs/requirements.md`
+\`docs/requirements.md\`
 
 ## 3. 🗺️ Roadmap Strategy (@Milestone Manager)
 **Role:** O Estrategista.
@@ -39,7 +39,7 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 - **Comando:** 
 /dev:milestone
 - **Saída:** 
-`docs/milestones.md`
+\`docs/milestones.md\`
 
 ## 4. 📋 Task Planning (@Task Planner)
 **Role:** O Gerente.
@@ -48,7 +48,7 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 - **Comando:** 
 /dev:tasks <Milestone_ID>
 - **Saída:** 
-`docs/task.md`
+\`docs/task.md\`
 
 ## 5. 🕵️ Blueprint Audit (@Auditor)
 **Role:** O Guardião.
@@ -56,16 +56,16 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 - **Comando:** 
 /dev:auditor
 - **Saída:** 
-`audit_report.md`
+\`audit_report.md\`
 
 ## 6. 💻 Implementation (@Coder)
 **Role:** O Construtor.
 **Goal:** Executar *uma tarefa por vez* do arquivo 
-`task.md`.
+\`task.md\`.
 - **Comando:** 
 /dev:coder <Task_ID>
 - **Buffer:** 
-`work_log.md`
+\`work_log.md\`
 
 ## 7. ⚖️ Quality Assurance (@QA Engineer)
 **Role:** O Inspetor.
@@ -73,17 +73,17 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 - **Comando:** 
 /dev:review <Task_ID>
 - **Saída:** 
-`docs/logs/review_log.md`
+\`docs/logs/review_log.md\`
 
 ## 8. 📦 Release Management (@Release Manager)
 **Role:** O Historiador.
 **Goal:** Consolidar o 
-`work_log.md` em um 
-`changelog.md` permanente.
+\`work_log.md\` em um 
+\`changelog.md\` permanente.
 - **Comando:** 
 /dev:log
 - **Saída:** 
-`changelog.md`
+\`changelog.md\`
 `;
 
     if (!fs.existsSync(docsDir)) {

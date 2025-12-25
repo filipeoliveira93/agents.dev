@@ -1,6 +1,6 @@
 {
     "name": "agents.dev",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "Instalador automático dos agentes de desenvolvimento",
     "main": "src/index.js",
     "bin": {
