@@ -1,10 +1,10 @@
 {
-    "name": "agents-dev",
-    "version": "1.0.5",
+    "name": "agents.dev",
+    "version": "1.0.6",
     "description": "Instalador automático dos agentes de desenvolvimento",
     "main": "src/index.js",
     "bin": {
-        "agents-dev": "./src/index.js"
+        "agents.dev": "./src/index.js"
     },
     "scripts": {
         "start": "node src/index.js",
@@ -17,5 +17,24 @@
         "zod": "^4.2.1"
     },
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "files": [
+        "src",
+        "definitions",
+        "README.md"
+    ],
+    "keywords": [
+        "ai",
+        "agents",
+        "cli",
+        "dev-tools",
+        "llm",
+        "gemini",
+        "roo-code",
+        "cline"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/filipeoliveira93/agents.dev"
+    }
 }
