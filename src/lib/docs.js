@@ -3,12 +3,18 @@ const path = require('path');
 const pc = require('picocolors');
 
 /**
- * Gera o guia de workflow do projeto
+ * Gera o guia de workflow e a estrutura de pastas necessária para os agentes
  */
 function generateWorkflowGuide(baseDir) {
     const docsDir = path.join(baseDir, 'docs');
+    const logsDir = path.join(docsDir, 'logs');
     
-    // Conteúdo baseado no exemplo provided
+    // Cria a estrutura de pastas recursivamente (Funciona em Windows, Mac e Linux)
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+    }
+
+    // Conteúdo do README.md
     const content = `# 🤖 Agent Workflow Guide
 
 Este documento descreve o fluxo de desenvolvimento padrão usando os Agentes instalados.
@@ -86,12 +92,13 @@ O sistema segue um processo **Waterfall** para planejamento (precisão) e **Iter
 \`changelog.md\`
 `;
 
-    if (!fs.existsSync(docsDir)) {
-        fs.mkdirSync(docsDir, { recursive: true });
-        fs.writeFileSync(path.join(docsDir, 'README.md'), content);
+    const readmePath = path.join(docsDir, 'README.md');
+    if (!fs.existsSync(readmePath)) {
+        fs.writeFileSync(readmePath, content);
         return true;
     }
-    return false;
+    
+    return true; // Retorna true indicando que a estrutura foi garantida
 }
 
 module.exports = { generateWorkflowGuide };
