@@ -114,4 +114,54 @@ function toCopilotInstructions(agent) {
     return parts.join('\n');
 }
 
-module.exports = { toGeminiTOML, toRooConfig, toKiloMarkdown, toCopilotInstructions };
+/**
+ * Converte para Cursor Rules (.mdc)
+ * Inclui Frontmatter para Contexto
+ */
+function toCursorMDC(agent) {
+    // Tenta inferir globs baseados no papel do agente
+    let globs = "*";
+    const roleLower = agent.slug.toLowerCase();
+    
+    if (roleLower.includes('test') || roleLower.includes('qa')) globs = "*.test.*, *.spec.*, **/tests/**";
+    if (roleLower.includes('css') || roleLower.includes('style')) globs = "*.css, *.scss, *.tailwind";
+    if (roleLower.includes('sql') || roleLower.includes('db')) globs = "*.sql, *.prisma, *.schema";
+
+    return `---
+description: ${agent.description || agent.role}
+globs: ${globs}
+---
+# ${agent.name} ${agent.emoji}
+
+Role: ${agent.role}
+
+## Instructions
+${agent.systemPrompt.trim()}
+
+${agent.rules && agent.rules.length > 0 ? '## Rules\n' + agent.rules.map(r => `- ${r}`).join('\n') : ''}
+`;
+}
+
+/**
+ * Converte para Windsurf (.windsurfrules)
+ */
+function toWindsurfRules(agent) {
+    return `# ${agent.name} ${agent.emoji} Rules
+
+Role: ${agent.role}
+
+## Core Logic
+${agent.systemPrompt.trim()}
+
+${agent.rules && agent.rules.length > 0 ? '## Guidelines\n' + agent.rules.map(r => `- ${r}`).join('\n') : ''}
+`;
+}
+
+module.exports = { 
+    toGeminiTOML, 
+    toRooConfig, 
+    toKiloMarkdown, 
+    toCopilotInstructions,
+    toCursorMDC,
+    toWindsurfRules
+};

@@ -8,7 +8,14 @@ const pc = require('picocolors');
 
 // Módulos Internos
 const { loadAgents } = require('./lib/agents');
-const { toGeminiTOML, toRooConfig, toKiloMarkdown, toCopilotInstructions } = require('./lib/transformers');
+const { 
+    toGeminiTOML, 
+    toRooConfig, 
+    toKiloMarkdown, 
+    toCopilotInstructions,
+    toCursorMDC,
+    toWindsurfRules
+} = require('./lib/transformers');
 const { generateWorkflowGuide } = require('./lib/docs');
 
 async function main() {
@@ -46,8 +53,10 @@ async function main() {
             message: 'Onde você deseja instalar os Agentes?',
             options: [
                 { value: 'gemini', label: 'Gemini CLI', hint: '.gemini/commands/dev' },
-                { value: 'roo', label: 'Roo Code', hint: 'Gera roo_custom_modes.json' },
-                { value: 'cline', label: 'Cline', hint: 'Gera cline_custom_modes.json' },
+                { value: 'roo', label: 'Roo Code', hint: '.roo/ & custom_modes.json' },
+                { value: 'cline', label: 'Cline', hint: '.cline/ & custom_modes.json' },
+                { value: 'cursor', label: 'Cursor', hint: '.cursor/rules/*.mdc' },
+                { value: 'windsurf', label: 'Windsurf', hint: '.windsurfrules' },
                 { value: 'kilo', label: 'Kilo Code', hint: '.kilo/prompts/*.md' },
                 { value: 'copilot', label: 'GitHub Copilot', hint: '.github/copilot-instructions.md' },
             ],
@@ -88,11 +97,23 @@ async function processAgentsInstallation(tool) {
             }));
         } 
         else if (tool === 'roo' || tool === 'cline') {
+            const configDir = tool === 'roo' ? '.roo' : '.cline';
+            const targetDir = path.join(process.cwd(), configDir);
+            await fsp.mkdir(targetDir, { recursive: true });
+
+            // 1. Gera arquivos Markdown (Contexto)
+            await Promise.all(validAgents.map(agent => {
+                const md = toKiloMarkdown(agent);
+                return fsp.writeFile(path.join(targetDir, `${agent.slug}.md`), md);
+            }));
+
+            // 2. Gera JSON para Custom Modes
             const modes = validAgents.map(agent => toRooConfig(agent, agent.slug));
             const jsonContent = JSON.stringify({ customModes: modes }, null, 2);
             const fileName = `${tool}_custom_modes.json`;
             await fsp.writeFile(path.join(process.cwd(), fileName), jsonContent);
-            note(`Copie o conteúdo de '${fileName}' para as configurações da extensão.`, 'Ação Manual');
+            
+            note(`1. Arquivos de contexto salvos em '${configDir}/'\n2. Copie o conteúdo de '${fileName}' para configurar os modos na extensão.`, 'Configuração Híbrida');
         } 
         else if (tool === 'kilo') {
             const targetDir = path.join(process.cwd(), '.kilo', 'prompts');
@@ -108,19 +129,31 @@ async function processAgentsInstallation(tool) {
             const agentsDir = path.join(githubDir, 'agents');
             await fsp.mkdir(agentsDir, { recursive: true });
 
-            // 1. Gera todos os agentes individuais
             await Promise.all(validAgents.map(agent => {
                 const md = toCopilotInstructions(agent);
                 return fsp.writeFile(path.join(agentsDir, `${agent.slug}.md`), md);
             }));
 
-            // 2. Define o copilot-instructions.md principal
-            // Tenta achar o 'dev.coder' ou usa o primeiro da lista
             const mainAgent = validAgents.find(a => a.slug.includes('coder')) || validAgents[0];
             const mainInstructions = toCopilotInstructions(mainAgent);
-            
             await fsp.writeFile(path.join(githubDir, 'copilot-instructions.md'), mainInstructions);
-            note(`Agente principal (${mainAgent.name}) definido em .github/copilot-instructions.md\nOutros agentes salvos em .github/agents/`, 'Configuração Copilot');
+            note(`Agente principal (${mainAgent.name}) definido em .github/copilot-instructions.md`, 'Configuração Copilot');
+        }
+        else if (tool === 'cursor') {
+            const rulesDir = path.join(process.cwd(), '.cursor', 'rules');
+            await fsp.mkdir(rulesDir, { recursive: true });
+
+            await Promise.all(validAgents.map(agent => {
+                const mdc = toCursorMDC(agent);
+                return fsp.writeFile(path.join(rulesDir, `${agent.slug}.mdc`), mdc);
+            }));
+            note(`Regras salvas em .cursor/rules/*.mdc`, 'Configuração Cursor');
+        }
+        else if (tool === 'windsurf') {
+            const mainAgent = validAgents.find(a => a.slug.includes('coder')) || validAgents[0];
+            const rules = toWindsurfRules(mainAgent);
+            await fsp.writeFile(path.join(process.cwd(), '.windsurfrules'), rules);
+            note(`Regras salvas em .windsurfrules usando o perfil do agente ${mainAgent.name}`, 'Configuração Windsurf');
         }
         
         s.stop('Instalação finalizada!');
@@ -128,7 +161,6 @@ async function processAgentsInstallation(tool) {
     } catch (e) {
         s.stop('Falha');
         console.error(pc.red(e.message));
-        // Se for um erro fatal de pasta não encontrada, loadAgents já lançou throw
     }
 }
 
