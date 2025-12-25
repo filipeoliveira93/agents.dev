@@ -86,4 +86,32 @@ function toKiloMarkdown(agent) {
     return parts.join('\n');
 }
 
-module.exports = { toGeminiTOML, toRooConfig, toKiloMarkdown };
+/**
+ * Converte para Instruções do GitHub Copilot (.github/copilot-instructions.md)
+ */
+function toCopilotInstructions(agent) {
+    const parts = [
+        `<!-- GitHub Copilot Instructions for ${agent.name} -->`,
+        `# Identity and Role`,
+        `You are **${agent.name}** ${agent.emoji}.`,
+        `**Role**: ${agent.role}`,
+        `\n## Core Instructions`,
+        agent.systemPrompt.trim(),
+        '\n'
+    ];
+
+    if (agent.rules && agent.rules.length > 0) {
+        parts.push(`## Rules & Guidelines`);
+        agent.rules.forEach(rule => parts.push(`- ${rule}`));
+    }
+    
+    // Adiciona uma seção de estilo de resposta para garantir conformidade
+    parts.push(`\n## Response Style`);
+    parts.push(`- Be concise and objective.`);
+    parts.push(`- Use Portuguese (Brazil) unless told otherwise.`);
+    parts.push(`- Follow the project conventions defined in the workspace.`);
+
+    return parts.join('\n');
+}
+
+module.exports = { toGeminiTOML, toRooConfig, toKiloMarkdown, toCopilotInstructions };

@@ -8,7 +8,7 @@ const pc = require('picocolors');
 
 // Módulos Internos
 const { loadAgents } = require('./lib/agents');
-const { toGeminiTOML, toRooConfig, toKiloMarkdown } = require('./lib/transformers');
+const { toGeminiTOML, toRooConfig, toKiloMarkdown, toCopilotInstructions } = require('./lib/transformers');
 const { generateWorkflowGuide } = require('./lib/docs');
 
 async function main() {
@@ -21,7 +21,6 @@ async function main() {
         options: [
             { value: 'docs', label: 'Gerar Documentação de Workflow (docs/README.md)', hint: 'Essencial' },
             { value: 'agents', label: 'Instalar Agentes de IA', hint: 'Recomendado' },
-            { value: 'vscode', label: 'Configurar VS Code', hint: '(Simulado)' },
         ],
         required: true,
     });
@@ -50,6 +49,7 @@ async function main() {
                 { value: 'roo', label: 'Roo Code', hint: 'Gera roo_custom_modes.json' },
                 { value: 'cline', label: 'Cline', hint: 'Gera cline_custom_modes.json' },
                 { value: 'kilo', label: 'Kilo Code', hint: '.kilo/prompts/*.md' },
+                { value: 'copilot', label: 'GitHub Copilot', hint: '.github/copilot-instructions.md' },
             ],
         });
 
@@ -102,6 +102,25 @@ async function processAgentsInstallation(tool) {
                 const md = toKiloMarkdown(agent);
                 return fsp.writeFile(path.join(targetDir, `${agent.slug}.md`), md);
             }));
+        }
+        else if (tool === 'copilot') {
+            const githubDir = path.join(process.cwd(), '.github');
+            const agentsDir = path.join(githubDir, 'agents');
+            await fsp.mkdir(agentsDir, { recursive: true });
+
+            // 1. Gera todos os agentes individuais
+            await Promise.all(validAgents.map(agent => {
+                const md = toCopilotInstructions(agent);
+                return fsp.writeFile(path.join(agentsDir, `${agent.slug}.md`), md);
+            }));
+
+            // 2. Define o copilot-instructions.md principal
+            // Tenta achar o 'dev.coder' ou usa o primeiro da lista
+            const mainAgent = validAgents.find(a => a.slug.includes('coder')) || validAgents[0];
+            const mainInstructions = toCopilotInstructions(mainAgent);
+            
+            await fsp.writeFile(path.join(githubDir, 'copilot-instructions.md'), mainInstructions);
+            note(`Agente principal (${mainAgent.name}) definido em .github/copilot-instructions.md\nOutros agentes salvos em .github/agents/`, 'Configuração Copilot');
         }
         
         s.stop('Instalação finalizada!');
