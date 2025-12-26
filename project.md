@@ -1,4 +1,4 @@
-# 📋 Projeto: Universal Spec CLI (Agents.Dev Installer)
+# 📋 Projeto: Universal Spec CLI (Agents-Dev Installer)
 
 Objetivo: Ferramenta CLI (Node.js) que configura automaticamente o ambiente de desenvolvimento e instala agentes de IA (Auditor, Coder, etc.) para diversas ferramentas (Gemini CLI, Roo Code, Cline).
 
