@@ -157,11 +157,43 @@ ${agent.rules && agent.rules.length > 0 ? '## Guidelines\n' + agent.rules.map(r 
 `;
 }
 
+/**
+ * Converte para System Prompt Puro (OpenAI/Claude/Web)
+ */
+function toPlainSystemPrompt(agent) {
+    return `You are ${agent.name} ${agent.emoji}
+Role: ${agent.role}
+
+[SYSTEM INSTRUCTIONS]
+${agent.systemPrompt.trim()}
+
+${agent.rules && agent.rules.length > 0 ? '[GUIDELINES]\n' + agent.rules.map(r => `- ${r}`).join('\n') : ''}
+`;
+}
+
+/**
+ * Converte para Trae Instructions
+ */
+function toTraeRules(agent) {
+    return `<!-- Trae Workspace Rules -->
+# ${agent.name} ${agent.emoji}
+
+**Role**: ${agent.role}
+
+## Context & Instructions
+${agent.systemPrompt.trim()}
+
+${agent.rules && agent.rules.length > 0 ? '## Constraints\n' + agent.rules.map(r => `- ${r}`).join('\n') : ''}
+`;
+}
+
 module.exports = { 
     toGeminiTOML, 
     toRooConfig, 
     toKiloMarkdown, 
     toCopilotInstructions,
     toCursorMDC,
-    toWindsurfRules
+    toWindsurfRules,
+    toPlainSystemPrompt,
+    toTraeRules
 };

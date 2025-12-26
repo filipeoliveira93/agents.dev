@@ -11,6 +11,9 @@ Lê definições agnósticas (YAML) e converte para formatos específicos:
 *   **GitHub Copilot:** Gera instruções em `.github/copilot-instructions.md` e agentes em `.github/agents/`.
 *   **Cursor:** Gera regras em `.cursor/rules/*.mdc`.
 *   **Windsurf:** Gera regras em `.windsurfrules`.
+*   **Trae:** Gera instruções em `.trae/instructions.md`.
+*   **OpenCode:** Gera agentes em `.opencode/`.
+*   **OpenAI / Claude (Web):** Gera prompts em texto puro na pasta `prompts/`.
 *   **Kilo Code:** Gera prompts em Markdown (`.kilo/prompts/*.md`).
 
 ### 2. Configuração de Workflow

@@ -14,7 +14,9 @@ const {
     toKiloMarkdown, 
     toCopilotInstructions,
     toCursorMDC,
-    toWindsurfRules
+    toWindsurfRules,
+    toPlainSystemPrompt,
+    toTraeRules
 } = require('./lib/transformers');
 const { generateWorkflowGuide } = require('./lib/docs');
 
@@ -57,8 +59,11 @@ async function main() {
                 { value: 'cline', label: 'Cline', hint: '.cline/ & custom_modes.json' },
                 { value: 'cursor', label: 'Cursor', hint: '.cursor/rules/*.mdc' },
                 { value: 'windsurf', label: 'Windsurf', hint: '.windsurfrules' },
+                { value: 'trae', label: 'Trae IDE', hint: '.trae/instructions.md' },
                 { value: 'kilo', label: 'Kilo Code', hint: '.kilo/prompts/*.md' },
                 { value: 'copilot', label: 'GitHub Copilot', hint: '.github/copilot-instructions.md' },
+                { value: 'web', label: 'OpenAI / Claude', hint: 'prompts/*.txt (Copiar & Colar)' },
+                { value: 'opencode', label: 'OpenCode', hint: '.opencode/*.md' },
             ],
         });
 
@@ -103,11 +108,11 @@ async function processAgentsInstallation(tool) {
 
             // 1. Gera arquivos Markdown (Contexto)
             await Promise.all(validAgents.map(agent => {
-                const md = toKiloMarkdown(agent);
+                const md = toKiloMarkdown(agent); // Reutiliza formato Markdown padrão
                 return fsp.writeFile(path.join(targetDir, `${agent.slug}.md`), md);
             }));
 
-            // 2. Gera JSON para Custom Modes
+            // 2. Gera JSON para Custom Modes (Configuração da Extensão)
             const modes = validAgents.map(agent => toRooConfig(agent, agent.slug));
             const jsonContent = JSON.stringify({ customModes: modes }, null, 2);
             const fileName = `${tool}_custom_modes.json`;
@@ -129,15 +134,19 @@ async function processAgentsInstallation(tool) {
             const agentsDir = path.join(githubDir, 'agents');
             await fsp.mkdir(agentsDir, { recursive: true });
 
+            // 1. Gera todos os agentes individuais
             await Promise.all(validAgents.map(agent => {
                 const md = toCopilotInstructions(agent);
                 return fsp.writeFile(path.join(agentsDir, `${agent.slug}.md`), md);
             }));
 
+            // 2. Define o copilot-instructions.md principal
+            // Tenta achar o 'dev.coder' ou usa o primeiro da lista
             const mainAgent = validAgents.find(a => a.slug.includes('coder')) || validAgents[0];
             const mainInstructions = toCopilotInstructions(mainAgent);
+            
             await fsp.writeFile(path.join(githubDir, 'copilot-instructions.md'), mainInstructions);
-            note(`Agente principal (${mainAgent.name}) definido em .github/copilot-instructions.md`, 'Configuração Copilot');
+            note(`Agente principal (${mainAgent.name}) definido em .github/copilot-instructions.md\nOutros agentes salvos em .github/agents/`, 'Configuração Copilot');
         }
         else if (tool === 'cursor') {
             const rulesDir = path.join(process.cwd(), '.cursor', 'rules');
@@ -154,6 +163,35 @@ async function processAgentsInstallation(tool) {
             const rules = toWindsurfRules(mainAgent);
             await fsp.writeFile(path.join(process.cwd(), '.windsurfrules'), rules);
             note(`Regras salvas em .windsurfrules usando o perfil do agente ${mainAgent.name}`, 'Configuração Windsurf');
+        }
+        else if (tool === 'trae') {
+            const traeDir = path.join(process.cwd(), '.trae');
+            await fsp.mkdir(traeDir, { recursive: true });
+            
+            const mainAgent = validAgents.find(a => a.slug.includes('coder')) || validAgents[0];
+            const rules = toTraeRules(mainAgent);
+            await fsp.writeFile(path.join(traeDir, 'instructions.md'), rules);
+            note(`Instruções salvas em .trae/instructions.md`, 'Configuração Trae');
+        }
+        else if (tool === 'web') {
+            const targetDir = path.join(process.cwd(), 'prompts');
+            await fsp.mkdir(targetDir, { recursive: true });
+
+            await Promise.all(validAgents.map(agent => {
+                const txt = toPlainSystemPrompt(agent);
+                return fsp.writeFile(path.join(targetDir, `${agent.slug}.txt`), txt);
+            }));
+            note(`Prompts salvos na pasta 'prompts/'. Copie e cole no ChatGPT ou Claude.`, 'Configuração Web');
+        }
+        else if (tool === 'opencode') {
+            const targetDir = path.join(process.cwd(), '.opencode');
+            await fsp.mkdir(targetDir, { recursive: true });
+
+            await Promise.all(validAgents.map(agent => {
+                const md = toKiloMarkdown(agent); // Reutiliza Markdown padrão
+                return fsp.writeFile(path.join(targetDir, `${agent.slug}.md`), md);
+            }));
+            note(`Agentes salvos em .opencode/*.md`, 'Configuração OpenCode');
         }
         
         s.stop('Instalação finalizada!');
