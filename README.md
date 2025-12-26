@@ -1,4 +1,4 @@
-# agents-dev (Universal Spec CLI)
+# agents.dev (Universal Spec CLI)
 
 Ferramenta CLI para configurar automaticamente o ambiente de desenvolvimento e instalar agentes de IA (Auditor, Coder, etc.) para diversas ferramentas modernas de IA.
 
@@ -24,20 +24,19 @@ Automatiza a criação da estrutura de documentação (`docs/` e `docs/logs/`) p
 Você pode executar a ferramenta diretamente via `npx` sem instalação prévia:
 
 ```bash
-npx agents-dev
+npx agents.dev
 ```
-*(ou `npx agents.dev`)*
 
 Ou instalar globalmente:
 
 ```bash
-npm install -g agents-dev
-agents-dev
+npm install -g agents.dev
+agents.dev
 ```
 
 ## Como funciona
 
-1.  Execute `npx agents-dev` na raiz do seu projeto.
+1.  Execute `npx agents.dev` na raiz do seu projeto.
 2.  A interface interativa perguntará quais configurações você deseja aplicar e para qual ferramenta.
 3.  Os arquivos de configuração dos agentes serão gerados na pasta do seu projeto automaticamente.
 
